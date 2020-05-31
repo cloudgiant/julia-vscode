@@ -2,13 +2,10 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
-import * as fs from 'async-file';
 import * as path from 'path'
-import * as net from 'net';
 import * as os from 'os';
 import * as telemetry from './telemetry';
-import { spawn, ChildProcess } from 'child_process';
-import { LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, TransportKind, StreamInfo, RevealOutputChannelOn } from 'vscode-languageclient';
+import { LanguageClient, LanguageClientOptions, RevealOutputChannelOn } from 'vscode-languageclient';
 import * as vslc from 'vscode-languageclient';
 import * as rpc from 'vscode-jsonrpc';
 import * as repl from './interactive/repl';
@@ -33,7 +30,7 @@ export async function activate(context: vscode.ExtensionContext) {
     telemetry.traceEvent('activate');
 
     g_lsStartup = vscode.window.createStatusBarItem();
-    g_lsStartup.text = "Starting Julia Language Server..."
+    g_lsStartup.text = 'Starting Julia Language Server...'
     g_lsStartup.show();
 
     telemetry.startLsCrashServer();
@@ -70,11 +67,11 @@ export async function activate(context: vscode.ExtensionContext) {
     const provider = new JuliaDebugConfigurationProvider();
     context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('julia', provider));
 
-    let factory = new InlineDebugAdapterFactory();
+    const factory = new InlineDebugAdapterFactory();
     context.subscriptions.push(vscode.debug.registerDebugAdapterDescriptorFactory('julia', factory));
 
     vscode.commands.registerCommand('language-julia.debug.getActiveJuliaEnvironment', async config => {
-        let pkgenvpath = await jlpkgenv.getEnvPath();
+        const pkgenvpath = await jlpkgenv.getEnvPath();
         return pkgenvpath;
     });
 
@@ -82,9 +79,9 @@ export async function activate(context: vscode.ExtensionContext) {
     startLanguageServer();
 
     if (vscode.workspace.getConfiguration('julia').get<boolean>('enableTelemetry') === null) {
-        vscode.window.showInformationMessage("To help improve the Julia extension, you can allow the development team to collect usage data. Read our [privacy statement](https://github.com/julia-vscode/julia-vscode/wiki/Privacy-Policy) to learn more how we use usage data and how to permanently hide this notification.", 'I agree to usage data collection')
+        vscode.window.showInformationMessage('To help improve the Julia extension, you can allow the development team to collect usage data. Read our [privacy statement](https://github.com/julia-vscode/julia-vscode/wiki/Privacy-Policy) to learn more how we use usage data and how to permanently hide this notification.', 'I agree to usage data collection')
             .then(telemetry_choice => {
-                if (telemetry_choice == "I agree to usage data collection") {
+                if (telemetry_choice === 'I agree to usage data collection') {
                     vscode.workspace.getConfiguration('julia').update('enableTelemetry', true, true);
                 }
             });
@@ -107,9 +104,9 @@ function changeConfig(params: vscode.ConfigurationChangeEvent) {
     const newSettings = settings.loadSettings()
     g_onDidChangeConfig.fire(newSettings)
 
-    const need_to_restart_server = g_settings.juliaExePath != newSettings.juliaExePath ? true : false
+    const need_to_restart_server = g_settings.juliaExePath !== newSettings.juliaExePath ? true : false
     if (need_to_restart_server) {
-        if (g_languageClient != null) {
+        if (g_languageClient !== null) {
             g_languageClient.stop();
             setLanguageClient(null);
         }
@@ -130,27 +127,27 @@ async function startLanguageServer() {
         vscode.window.showErrorMessage(e)
         return;
     }
-    let oldDepotPath = process.env.JULIA_DEPOT_PATH ? process.env.JULIA_DEPOT_PATH : "";
-    let envForLSPath = path.join(g_context.extensionPath, "scripts", "languageserver", "packages")
-    let serverArgsRun = ['--startup-file=no', '--history-file=no', '--depwarn=no', `--project=${envForLSPath}`, 'main.jl', jlEnvPath, '--debug=no', telemetry.getCrashReportingPipename(), oldDepotPath, g_context.globalStoragePath];
-    let serverArgsDebug = ['--startup-file=no', '--history-file=no', '--depwarn=no', `--project=${envForLSPath}`, 'main.jl', jlEnvPath, '--debug=yes', telemetry.getCrashReportingPipename(), oldDepotPath, g_context.globalStoragePath];
-    let spawnOptions = {
+    const oldDepotPath = process.env.JULIA_DEPOT_PATH ? process.env.JULIA_DEPOT_PATH : '';
+    const envForLSPath = path.join(g_context.extensionPath, 'scripts', 'languageserver', 'packages')
+    const serverArgsRun = ['--startup-file=no', '--history-file=no', '--depwarn=no', `--project=${envForLSPath}`, 'main.jl', jlEnvPath, '--debug=no', telemetry.getCrashReportingPipename(), oldDepotPath, g_context.globalStoragePath];
+    const serverArgsDebug = ['--startup-file=no', '--history-file=no', '--depwarn=no', `--project=${envForLSPath}`, 'main.jl', jlEnvPath, '--debug=yes', telemetry.getCrashReportingPipename(), oldDepotPath, g_context.globalStoragePath];
+    const spawnOptions = {
         cwd: path.join(g_context.extensionPath, 'scripts', 'languageserver'),
         env: {
             JULIA_DEPOT_PATH: path.join(g_context.extensionPath, 'scripts', 'languageserver', 'julia_pkgdir'),
-            JULIA_LOAD_PATH: process.platform == "win32" ? ';' : ':',
+            JULIA_LOAD_PATH: process.platform === 'win32' ? ';' : ':',
             HOME: process.env.HOME ? process.env.HOME : os.homedir()
         }
     };
 
-    let jlexepath = await juliaexepath.getJuliaExePath();
+    const jlexepath = await juliaexepath.getJuliaExePath();
 
-    let serverOptions = {
+    const serverOptions = {
         run: { command: jlexepath, args: serverArgsRun, options: spawnOptions },
         debug: { command: jlexepath, args: serverArgsDebug, options: spawnOptions }
     };
 
-    let clientOptions: LanguageClientOptions = {
+    const clientOptions: LanguageClientOptions = {
         documentSelector: ['julia', 'juliamarkdown'],
         synchronize: {
             fileEvents: vscode.workspace.createFileSystemWatcher('**/*.{jl,jmd}')
@@ -163,14 +160,14 @@ async function startLanguageServer() {
     g_languageClient = new LanguageClient('julia', 'Julia Language Server', serverOptions, clientOptions);
     g_languageClient.registerProposedFeatures()
     g_languageClient.onTelemetry((data: any) => {
-        if (data.command == 'trace_event') {
+        if (data.command === 'trace_event') {
             telemetry.traceEvent(data.message);
         }
-        else if (data.command == 'symserv_crash') {
+        else if (data.command === 'symserv_crash') {
             telemetry.traceEvent('symservererror');
             telemetry.handleNewCrashReport(data.name, data.message, data.stacktrace);
         }
-        else if (data.command == 'symserv_pkgload_crash') {
+        else if (data.command === 'symserv_pkgload_crash') {
             telemetry.tracePackageLoadError(data.name, data.message)
         }
     });
@@ -192,7 +189,7 @@ async function startLanguageServer() {
 }
 
 export class JuliaDebugConfigurationProvider
-    implements vscode.DebugConfigurationProvider {
+implements vscode.DebugConfigurationProvider {
 
     public resolveDebugConfiguration(
         folder: vscode.WorkspaceFolder | undefined,
@@ -213,23 +210,23 @@ export class JuliaDebugConfigurationProvider
                 config.name = 'Launch Julia';
             }
 
-            if (!config.program && config.request != 'attach') {
+            if (!config.program && config.request !== 'attach') {
                 config.program = vscode.window.activeTextEditor.document.fileName;
             }
 
             if (!config.internalConsoleOptions) {
-                config.internalConsoleOptions = "neverOpen";
+                config.internalConsoleOptions = 'neverOpen';
             }
 
             if (!config.stopOnEntry) {
                 config.stopOnEntry = false;
             }
 
-            if (!config.cwd && config.request != 'attach') {
+            if (!config.cwd && config.request !== 'attach') {
                 config.cwd = '${workspaceFolder}';
             }
 
-            if (!config.juliaEnv && config.request != 'attach') {
+            if (!config.juliaEnv && config.request !== 'attach') {
                 config.juliaEnv = '${command:activeJuliaEnvironment}';
             }
 

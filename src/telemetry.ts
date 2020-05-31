@@ -1,10 +1,6 @@
 import * as vscode from 'vscode';
-import * as rpc from 'vscode-jsonrpc';
 import * as path from 'path';
 import * as net from 'net';
-import * as os from 'os';
-import * as vslc from 'vscode-languageclient';
-import * as settings from './settings';
 import * as fs from 'async-file';
 import * as appInsights from 'applicationinsights';
 import { generatePipeName } from './utils';
@@ -13,7 +9,7 @@ import { onDidChangeConfig } from './extension';
 let enableCrashReporter: boolean = false;
 let enableTelemetry: boolean = false;
 
-let g_currentJuliaVersion: string = "";
+let g_currentJuliaVersion: string = '';
 
 let extensionClient: appInsights.TelemetryClient = undefined;
 
@@ -23,12 +19,12 @@ let crashReporterQueue = []
 let g_jlcrashreportingpipename: string = null;
 
 function filterTelemetry(envelope, context) {
-    if (envelope.data.baseType == "ExceptionData") {
+    if (envelope.data.baseType === 'ExceptionData') {
         if (enableCrashReporter) {
-            for (let i_ex in envelope.data.baseData.exceptions) {
-                for (let i_sf in envelope.data.baseData.exceptions[i_ex].parsedStack) {
-                    let sf = envelope.data.baseData.exceptions[i_ex].parsedStack[i_sf]
-                    envelope.data.baseData.exceptions[i_ex].parsedStack[i_sf].assembly = "";
+            for (const i_ex in envelope.data.baseData.exceptions) {
+                for (const i_sf in envelope.data.baseData.exceptions[i_ex].parsedStack) {
+                    const sf = envelope.data.baseData.exceptions[i_ex].parsedStack[i_sf]
+                    envelope.data.baseData.exceptions[i_ex].parsedStack[i_sf].assembly = '';
 
                     envelope.data.baseData.exceptions[i_ex].parsedStack[i_sf].sizeInBytes = sf.method.length + sf.fileName.length + sf.assembly.length + 58 + sf.level.toString().length + sf.line.toString().length
                 }
@@ -45,7 +41,7 @@ function filterTelemetry(envelope, context) {
 }
 
 function loadConfig() {
-    let section = vscode.workspace.getConfiguration('julia');
+    const section = vscode.workspace.getConfiguration('julia');
 
     enableCrashReporter = section.get<boolean>('enableCrashReporter', false)
     enableTelemetry = section.get<boolean>('enableTelemetry', false);
@@ -58,14 +54,14 @@ export async function init(context: vscode.ExtensionContext) {
         loadConfig()
     }))
 
-    let packageJSONContent = JSON.parse(await fs.readTextFile(path.join(context.extensionPath, 'package.json')));
+    const packageJSONContent = JSON.parse(await fs.readTextFile(path.join(context.extensionPath, 'package.json')));
 
-    let extversion = packageJSONContent.version;
-    let previewVersion = packageJSONContent.preview;
+    const extversion = packageJSONContent.version;
+    const previewVersion = packageJSONContent.preview;
 
     // The Application Insights Key
     let key = '';
-    if (vscode.env.machineId == "someValue.machineId") {
+    if (vscode.env.machineId === 'someValue.machineId') {
         // Use the debug environment
         key = '82cf1bd4-8560-43ec-97a6-79847395d791';
     }
@@ -88,20 +84,20 @@ export async function init(context: vscode.ExtensionContext) {
         .setUseDiskRetryCaching(true)
         .start();
 
-    if (vscode.env.machineId == "someValue.machineId") {
+    if (vscode.env.machineId === 'someValue.machineId') {
         // Make sure we send out messages right away
         appInsights.defaultClient.config.maxBatchSize = 0;
     }
 
     extensionClient = appInsights.defaultClient;
     extensionClient.addTelemetryProcessor(filterTelemetry);
-    extensionClient.commonProperties["vscodemachineid"] = vscode.env.machineId;
-    extensionClient.commonProperties["vscodesessionid"] = vscode.env.sessionId;
-    extensionClient.commonProperties["vscodeversion"] = vscode.version;
-    extensionClient.commonProperties["extversion"] = extversion;
-    extensionClient.commonProperties["juliaversion"] = g_currentJuliaVersion;
-    extensionClient.context.tags[extensionClient.context.keys.cloudRole] = "Extension";
-    extensionClient.context.tags[extensionClient.context.keys.cloudRoleInstance] = "";
+    extensionClient.commonProperties['vscodemachineid'] = vscode.env.machineId;
+    extensionClient.commonProperties['vscodesessionid'] = vscode.env.sessionId;
+    extensionClient.commonProperties['vscodeversion'] = vscode.version;
+    extensionClient.commonProperties['extversion'] = extversion;
+    extensionClient.commonProperties['juliaversion'] = g_currentJuliaVersion;
+    extensionClient.context.tags[extensionClient.context.keys.cloudRole] = 'Extension';
+    extensionClient.context.tags[extensionClient.context.keys.cloudRoleInstance] = '';
     extensionClient.context.tags[extensionClient.context.keys.sessionId] = vscode.env.sessionId;
     extensionClient.context.tags[extensionClient.context.keys.userId] = vscode.env.machineId;
 }
@@ -121,7 +117,7 @@ export function startLsCrashServer() {
 
     g_jlcrashreportingpipename = generatePipeName(process.pid.toString(), 'vsc-jl-cr');
 
-    let server = net.createServer(function (connection) {
+    const server = net.createServer(function (connection) {
         let accumulatingBuffer = Buffer.alloc(0);
 
         connection.on('data', async function (c) {
@@ -129,10 +125,10 @@ export function startLsCrashServer() {
         });
 
         connection.on('close', async function (had_err) {
-            let replResponse = accumulatingBuffer.toString().split("\n")
-            let errorMessageLines = parseInt(replResponse[1])
-            let errorMessage = replResponse.slice(2, 2 + errorMessageLines).join('\n');
-            let stacktrace = replResponse.slice(2 + errorMessageLines, replResponse.length - 1).join('\n');
+            const replResponse = accumulatingBuffer.toString().split('\n')
+            const errorMessageLines = parseInt(replResponse[1])
+            const errorMessage = replResponse.slice(2, 2 + errorMessageLines).join('\n');
+            const stacktrace = replResponse.slice(2 + errorMessageLines, replResponse.length - 1).join('\n');
 
             traceEvent('jlerror');
 
@@ -156,9 +152,9 @@ export function tracePackageLoadError(packagename, message) {
 }
 
 function sendCrashReportQueue() {
-    var own_copy = crashReporterQueue;
+    const own_copy = crashReporterQueue;
     crashReporterQueue = [];
-    for (var i of own_copy) {
+    for (const i of own_copy) {
         extensionClient.track(i, appInsights.Contracts.TelemetryType.Exception)
     }
 }
@@ -170,13 +166,13 @@ async function showCrashReporterUIConsent() {
     else {
         crashReporterUIVisible = true;
         try {
-            var choice = await vscode.window.showInformationMessage("The Julia language extension crashed. Do you want to send more information about the problem to the development team? Read our [privacy statement](https://github.com/julia-vscode/julia-vscode/wiki/Privacy-Policy) to learn more how we use crash reports, what data will be transmitted and how to permanently hide this notification.", 'Yes, send a crash report', 'Yes, always send a crash report');
+            const choice = await vscode.window.showInformationMessage('The Julia language extension crashed. Do you want to send more information about the problem to the development team? Read our [privacy statement](https://github.com/julia-vscode/julia-vscode/wiki/Privacy-Policy) to learn more how we use crash reports, what data will be transmitted and how to permanently hide this notification.', 'Yes, send a crash report', 'Yes, always send a crash report');
 
-            if (choice == 'Yes, always send a crash report') {
+            if (choice === 'Yes, always send a crash report') {
                 vscode.workspace.getConfiguration('julia').update('enableCrashReporter', true, true);
             }
 
-            if (choice == 'Yes, send a crash report' || choice == 'Yes, always send a crash report') {
+            if (choice === 'Yes, send a crash report' || choice === 'Yes, always send a crash report') {
                 sendCrashReportQueue();
             }
         }
@@ -190,6 +186,6 @@ export function setCurrentJuliaVersion(version: string) {
     g_currentJuliaVersion = version;
 
     if (extensionClient) {
-        extensionClient.commonProperties["juliaversion"] = g_currentJuliaVersion;
+        extensionClient.commonProperties['juliaversion'] = g_currentJuliaVersion;
     }
 }

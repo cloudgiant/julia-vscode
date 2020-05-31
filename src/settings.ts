@@ -5,11 +5,11 @@ export interface ISettings {
 }
 
 export function loadSettings(): ISettings {
-    let section = vscode.workspace.getConfiguration('julia');
+    const section = vscode.workspace.getConfiguration('julia');
 
     let jlpath = section ? section.get<string>('executablePath', null) : null
 
-    if (jlpath === "") {
+    if (jlpath === '') {
         jlpath = null
     }
 

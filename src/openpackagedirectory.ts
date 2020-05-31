@@ -5,7 +5,7 @@ import * as settings from './settings';
 import * as packagepath from './packagepath'
 import * as vslc from 'vscode-languageclient';
 import * as telemetry from './telemetry';
-import { onSetLanguageClient, onDidChangeConfig } from './extension';
+import { onDidChangeConfig, onSetLanguageClient } from './extension';
 
 let g_context: vscode.ExtensionContext = null;
 let g_settings: settings.ISettings = null;
@@ -20,20 +20,20 @@ async function openPackageDirectoryCommand() {
     };
 
     try {
-        var juliaVersionHomeDir = await packagepath.getPkgPath();
+        const juliaVersionHomeDir = await packagepath.getPkgPath();
 
-        let files = await fs.readdir(juliaVersionHomeDir);
+        const files = await fs.readdir(juliaVersionHomeDir);
 
-        let filteredPackages = files.filter(path => !path.startsWith('.') && ['METADATA', 'REQUIRE', 'META_BRANCH'].indexOf(path) < 0);
+        const filteredPackages = files.filter(path => !path.startsWith('.') && ['METADATA', 'REQUIRE', 'META_BRANCH'].indexOf(path) < 0);
 
-        if (filteredPackages.length == 0) {
+        if (filteredPackages.length === 0) {
             vscode.window.showInformationMessage('Error: There are no packages installed.');
         }
         else {
-            let resultPackage = await vscode.window.showQuickPick(filteredPackages, optionsPackage);
+            const resultPackage = await vscode.window.showQuickPick(filteredPackages, optionsPackage);
 
             if (resultPackage !== undefined) {
-                var folder = vscode.Uri.file(path.join(juliaVersionHomeDir, resultPackage));
+                const folder = vscode.Uri.file(path.join(juliaVersionHomeDir, resultPackage));
 
                 try {
                     await vscode.commands.executeCommand('vscode.openFolder', folder, true);

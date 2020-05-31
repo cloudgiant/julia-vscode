@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 
 let g_terminal: vscode.Terminal = null
-let g_replVariables: string = '';
+const g_replVariables: string = '';
 
 export class REPLTreeDataProvider implements vscode.TreeDataProvider<string> {
     private _onDidChangeTreeData: vscode.EventEmitter<string | undefined> = new vscode.EventEmitter<string | undefined>();
@@ -26,7 +26,7 @@ export class REPLTreeDataProvider implements vscode.TreeDataProvider<string> {
     }
 
     getTreeItem(node: string): vscode.TreeItem {
-        let treeItem: vscode.TreeItem = new vscode.TreeItem(node)
+        const treeItem: vscode.TreeItem = new vscode.TreeItem(node)
         return treeItem;
     }
 }

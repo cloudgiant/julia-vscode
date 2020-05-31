@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import * as settings from './settings'
 import * as vslc from 'vscode-languageclient';
 import * as telemetry from './telemetry';
-import { onSetLanguageClient, onDidChangeConfig } from './extension';
+import { onDidChangeConfig, onSetLanguageClient } from './extension';
 
 let g_context: vscode.ExtensionContext = null;
 let g_settings: settings.ISettings = null;
@@ -11,15 +11,15 @@ let g_languageClient: vslc.LanguageClient = null;
 function toggleLinter() {
     telemetry.traceEvent('command-togglelinter');
 
-    let cval = vscode.workspace.getConfiguration('julia').get('lint.run', false)
+    const cval = vscode.workspace.getConfiguration('julia').get('lint.run', false)
     vscode.workspace.getConfiguration('julia').update('lint.run', !cval, true)
 }
 
 function applyTextEdit(we) {
     telemetry.traceEvent('command-applytextedit');
 
-    let wse = new vscode.WorkspaceEdit()
-    for (let edit of we.documentChanges[0].edits) {
+    const wse = new vscode.WorkspaceEdit()
+    for (const edit of we.documentChanges[0].edits) {
         wse.replace(we.documentChanges[0].textDocument.uri, new vscode.Range(edit.range.start.line, edit.range.start.character, edit.range.end.line, edit.range.end.character), edit.newText)
     }
     vscode.workspace.applyEdit(wse)
