@@ -10,8 +10,6 @@ import * as juliaexepath from './juliaexepath';
 import { exec } from 'child-process-promise';
 import { onDidChangeConfig, onSetLanguageClient } from './extension';
 
-let g_context: vscode.ExtensionContext = null;
-let g_settings: settings.ISettings = null;
 let g_languageClient: vslc.LanguageClient = null;
 
 let g_current_environment: vscode.StatusBarItem = null;
@@ -191,9 +189,6 @@ export async function getEnvName() {
 }
 
 export async function activate(context: vscode.ExtensionContext, settings: settings.ISettings) {
-    g_context = context;
-    g_settings = settings;
-
     context.subscriptions.push(onSetLanguageClient(languageClient => {
         g_languageClient = languageClient
     }))

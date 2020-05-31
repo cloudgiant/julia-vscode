@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
 import * as settings from './settings';
-import * as vslc from 'vscode-languageclient';
 import * as os from 'os';
 import * as path from 'path';
 import * as process from 'process';
@@ -9,12 +8,10 @@ import * as which from 'which';
 import * as child_process from 'child_process';
 import { setCurrentJuliaVersion, traceEvent } from './telemetry';
 import { exec } from 'child-process-promise';
-import { onDidChangeConfig, onSetLanguageClient } from './extension';
+import { onDidChangeConfig } from './extension';
 const whichAsync = util.promisify(which);
 
-let g_context: vscode.ExtensionContext = null;
 let g_settings: settings.ISettings = null;
-let g_languageClient: vslc.LanguageClient = null;
 
 let actualJuliaExePath: string = null;
 
@@ -106,11 +103,7 @@ export async function getJuliaExePath() {
 }
 
 export function activate(context: vscode.ExtensionContext, settings: settings.ISettings) {
-    g_context = context;
     g_settings = settings;
-    context.subscriptions.push(onSetLanguageClient(languageClient => {
-        g_languageClient = languageClient
-    }))
     context.subscriptions.push(onDidChangeConfig(newSettings => {
         if (g_settings.juliaExePath !== newSettings.juliaExePath) {
             actualJuliaExePath = null;

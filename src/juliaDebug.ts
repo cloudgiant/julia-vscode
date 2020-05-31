@@ -45,7 +45,6 @@ export class JuliaDebugSession extends LoggingDebugSession {
 	private _configurationDone = new Subject();
 
 	private _cancelationTokens = new Map<number, boolean>();
-	private _isLongrunning = new Map<number, boolean>();
 
 	private _juliaPath: string;
 	private _context: vscode.ExtensionContext;

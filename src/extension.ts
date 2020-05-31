@@ -7,7 +7,6 @@ import * as os from 'os';
 import * as telemetry from './telemetry';
 import { LanguageClient, LanguageClientOptions, RevealOutputChannelOn } from 'vscode-languageclient';
 import * as vslc from 'vscode-languageclient';
-import * as rpc from 'vscode-jsonrpc';
 import * as repl from './interactive/repl';
 import * as weave from './weave';
 import * as tasks from './tasks';

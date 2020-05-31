@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import * as vslc from 'vscode-languageclient';
 import * as fs from 'async-file';
 import * as path from 'path'
 import * as settings from './settings'
@@ -7,13 +6,9 @@ import * as juliaexepath from './juliaexepath';
 import * as jlpkgenv from './jlpkgenv';
 import * as telemetry from './telemetry';
 import { inferJuliaNumThreads } from './utils';
-import { onDidChangeConfig, onSetLanguageClient } from './extension';
+import { onDidChangeConfig } from './extension';
 
 let g_context: vscode.ExtensionContext = null;
-let g_settings: settings.ISettings = null;
-let g_languageClient: vslc.LanguageClient = null;
-
-let taskProvider: vscode.Disposable | undefined;
 
 async function provideJuliaTasks(): Promise<vscode.Task[]> {
     const emptyTasks: vscode.Task[] = [];
@@ -111,14 +106,10 @@ async function provideJuliaTasksForFolder(folder: vscode.WorkspaceFolder): Promi
 
 export function activate(context: vscode.ExtensionContext, settings: settings.ISettings) {
     g_context = context;
-    g_settings = settings;
 
-    context.subscriptions.push(onSetLanguageClient(languageClient => {
-        g_languageClient = languageClient
-    }))
     context.subscriptions.push(onDidChangeConfig(newSettings => { }))
 
-    taskProvider = vscode.workspace.registerTaskProvider('julia', {
+    vscode.workspace.registerTaskProvider('julia', {
         provideTasks: () => {
             return provideJuliaTasks();
         },

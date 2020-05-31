@@ -13,10 +13,9 @@ import { Subject } from 'await-notify';
 
 import * as plots from './plots'
 import * as workspace from './workspace'
-import { onDidChangeConfig, onSetLanguageClient } from '../extension';
+import { onSetLanguageClient } from '../extension';
 
 let g_context: vscode.ExtensionContext = null;
-let g_settings: ISettings = null;
 let g_languageClient: vslc.LanguageClient = null;
 
 let g_terminal: vscode.Terminal = null
@@ -367,13 +366,9 @@ export interface TextDocumentPositionParams {
 
 export function activate(context: vscode.ExtensionContext, settings: ISettings) {
     g_context = context;
-    g_settings = settings;
 
     context.subscriptions.push(onSetLanguageClient(languageClient => {
         g_languageClient = languageClient
-    }))
-    context.subscriptions.push(onDidChangeConfig(newSettings => {
-        g_settings = newSettings
     }))
 
     context.subscriptions.push(vscode.commands.registerCommand('language-julia.startREPL', startREPLCommand));

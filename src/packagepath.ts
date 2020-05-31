@@ -1,14 +1,11 @@
 import * as vscode from 'vscode';
 import * as settings from './settings';
-import * as vslc from 'vscode-languageclient';
 import * as juliaexepath from './juliaexepath';
 import { join } from 'path';
 import { exec } from 'child-process-promise';
-import { onDidChangeConfig, onSetLanguageClient } from './extension';
+import { onDidChangeConfig } from './extension';
 
-let g_context: vscode.ExtensionContext = null;
 let g_settings: settings.ISettings = null;
-let g_languageClient: vslc.LanguageClient = null;
 
 let juliaPackagePath: string = null;
 
@@ -34,12 +31,8 @@ export async function getPkgDepotPath() {
 }
 
 export function activate(context: vscode.ExtensionContext, settings: settings.ISettings) {
-    g_context = context;
     g_settings = settings;
 
-    context.subscriptions.push(onSetLanguageClient(languageClient => {
-        g_languageClient = languageClient
-    }))
     context.subscriptions.push(onDidChangeConfig(newSettings => {
         if (g_settings.juliaExePath !== newSettings.juliaExePath) {
             juliaPackagePath = null;
